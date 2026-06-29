@@ -291,11 +291,21 @@ $('#copyAll').onclick = () => {
   $('#copyAll').textContent = '✓ copied';
   setTimeout(()=>$('#copyAll').textContent='Copy all',900);
 };
-const SAMPLE = "Perfume Campaign Final Delivery 2026\nClient Brand Identity Working Files\nChromeForge AE Extension Source\nQ3 Social Media Content Calendar";
-$('#sample').onclick = () => { $('#in').value = SAMPLE; render(); };
+const EXAMPLES = [
+  "Perfume Campaign Final Delivery 2026",
+  "Client Brand Identity Working Files",
+  "ChromeForge AE Extension Source",
+  "Q3 Social Media Content Calendar",
+  "Untitled Project Copy Final v2",
+  "Summer Photoshoot Raw Exports",
+  "Website Redesign Master Assets",
+  "Annual Report Draft For Review"
+];
+const pick = () => EXAMPLES[Math.floor(Math.random()*EXAMPLES.length)];
+$('#sample').onclick = () => { $('#in').value = pick(); render(); };
 
-// show a worked example on first load
-$('#in').value = SAMPLE;
+// show one random worked example on first load
+$('#in').value = pick();
 render();
 </script>
 </body>
