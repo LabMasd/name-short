@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>name.short</title>
+<style>
+  :root{
+    --bg-primary:#1a1a1a;--bg-button:#252525;--bg-hover:#2a2a2a;--bg-input:#2a2a2a;
+    --accent:#ced2a1;--accent-hover:#dde2b1;--text:#e0e0e0;--text-dim:#888;
+    --border:#333;--danger:#e57373;--radius:6px;
+    --mono:'SF Mono','Monaco','Consolas',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:380px;background:#111;color:var(--text);
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:500;
+    font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;padding:14px;
+  }
+  header{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
+  h1{font-size:18px;font-weight:500;letter-spacing:-.5px;color:var(--accent)}
+  h1 .w{color:#fff}
+  .sub{color:var(--text-dim);font-size:11px}
+
+  label{display:block;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  textarea,input,select{
+    width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+    border-radius:var(--radius);padding:8px;font-size:12px;font-family:var(--mono);transition:border-color .15s ease;
+  }
+  textarea{min-height:64px;resize:vertical}
+  select{font-family:inherit;cursor:pointer}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent)}
+  textarea::placeholder{color:var(--text-dim)}
+
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .ctrl label{margin-bottom:5px}
+  .num{width:100%}
+  .seg{position:relative;display:inline-flex;gap:2px;padding:2px;background:#141414;border:1px solid var(--border);border-radius:var(--radius);width:100%}
+  .seg .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:0;background:var(--bg-button);border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.3);transform-origin:center;transform:scaleX(var(--sx,1));transition:left .34s cubic-bezier(.22,.9,.26,1),width .34s cubic-bezier(.22,.9,.26,1),transform .2s cubic-bezier(.34,1.4,.5,1),filter .34s ease;z-index:0}
+  .seg .thumb.drag{filter:blur(.6px)}
+  .seg button{position:relative;z-index:1;flex:1;background:transparent;border:none;color:var(--text-dim);padding:5px 0;font:inherit;font-size:11px;font-weight:500;border-radius:4px;cursor:pointer;transition:color .2s ease}
+  .seg button:hover{color:var(--accent)}
+  .seg button.on{color:var(--accent)}
+
+  .chk{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);user-select:none;font-size:12px;margin-top:4px}
+  .chk input{width:auto;accent-color:var(--accent)}
+
+  .out{margin-top:14px}
+  .row{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--bg-button);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;transition:border-color .15s ease}
+  .row:hover{border-color:var(--accent)}
+  .row .short{color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-size:13px}
+  .row .len{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
+  .row button{background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:5px;padding:3px 8px;font:inherit;font-size:10px;cursor:pointer;transition:all .15s ease}
+  .row button:hover{border-color:var(--accent);color:var(--accent)}
+  .row button:active{background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
+  .row button.copied{border-color:var(--accent);color:var(--accent)}
+  .empty{color:var(--text-dim);text-align:center;padding:14px;font-size:12px}
+
+  .bar{display:flex;gap:8px;margin-top:10px}
+  .bar button{flex:1;background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:var(--radius);padding:8px;font:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s ease}
+  .bar button:hover{border-color:var(--accent);color:var(--accent)}
+  .bar button:active{transform:scale(.98);background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
+</style>
+</head>
+<body>
+  <header>
+    <h1>name<span class="w">.short</span></h1>
+    <span class="sub">long names → tidy slugs</span>
+  </header>
+
+  <label>Names — one per line</label>
+  <textarea id="in" placeholder="Perfume Campaign Final Delivery 2026"></textarea>
+
+  <div class="controls">
+    <div class="ctrl">
+      <label>Case</label>
+      <select id="case">
+        <option value="kebab">kebab-case</option>
+        <option value="snake">snake_case</option>
+        <option value="camel">camelCase</option>
+        <option value="pascal">PascalCase</option>
+        <option value="lower">lowercase</option>
+        <option value="upper">UPPERCASE</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Strategy</label>
+      <select id="strat">
+        <option value="smart">smart (drop filler)</option>
+        <option value="initials">initials</option>
+        <option value="truncate">truncate words</option>
+        <option value="vowels">drop vowels</option>
+        <option value="full">full slug</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Max length</label>
+      <input class="num" id="max" type="number" min="0" value="24">
+    </div>
+    <div class="ctrl">
+      <label>Date</label>
+      <div class="seg" id="date">
+        <div class="thumb"></div>
+        <button data-d="none" class="on">none</button>
+        <button data-d="pre">pre</button>
+        <button data-d="post">post</button>
+      </div>
+    </div>
+  </div>
+  <label class="chk"><input type="checkbox" id="ascii" checked> ascii only</label>
+
+  <div class="out">
+    <label>Shortened</label>
+    <div id="out"><div class="empty">Type some names above ↑</div></div>
+    <div class="bar">
+      <button id="copyAll">Copy all</button>
+      <button id="sample">Sample</button>
+    </div>
+  </div>
+
+<script src="core.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

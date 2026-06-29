@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "name.short",
+  "version": "1.0.0",
+  "description": "Turn long names into short, folder-safe slugs. Smart filler-drop, kebab/snake/camel, date stamps. Runs locally.",
+  "action": {
+    "default_title": "name.short",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": { "service_worker": "background.js" },
+  "permissions": ["contextMenus", "storage", "notifications", "scripting", "activeTab"]
+}
