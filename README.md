@@ -15,5 +15,6 @@ Plus a max-length cap and optional `YYYYMMDD` date prefix/suffix.
 ## Versions
 - **Web app** — `index.html` (this is what GitHub Pages serves)
 - **Chrome extension** — [`extension/`](extension/) — popup + right-click "shorten selection → copy"
+- **macOS menu-bar app** — [`mac-app/`](mac-app/) — native Swift menu-bar popover, copies to system clipboard
 
 Built by [masd.cc](https://masd.cc).

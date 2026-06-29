@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>name.short</title>
+<style>
+  :root{
+    --bg-primary:#1a1a1a;--bg-button:#252525;--bg-hover:#2a2a2a;--bg-input:#2a2a2a;
+    --accent:#ced2a1;--accent-hover:#dde2b1;--text:#e0e0e0;--text-dim:#888;
+    --border:#333;--radius:6px;--mono:'SF Mono','Monaco','Consolas',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#111}
+  body{
+    width:380px;color:var(--text);
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:500;
+    font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;padding:14px;
+    user-select:none;
+  }
+  header{display:flex;align-items:baseline;gap:8px;margin-bottom:14px;-webkit-app-region:drag}
+  h1{font-size:18px;font-weight:500;letter-spacing:-.5px;color:var(--accent)}
+  h1 .w{color:#fff}
+  .sub{color:var(--text-dim);font-size:11px}
+
+  label{display:block;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  textarea,input,select{
+    width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+    border-radius:var(--radius);padding:8px;font-size:12px;font-family:var(--mono);transition:border-color .15s ease;user-select:text;
+  }
+  textarea{min-height:60px;resize:none}
+  select{font-family:inherit;cursor:pointer}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent)}
+  textarea::placeholder{color:var(--text-dim)}
+
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .ctrl label{margin-bottom:5px}
+  .num{width:100%}
+  .seg{position:relative;display:inline-flex;gap:2px;padding:2px;background:#141414;border:1px solid var(--border);border-radius:var(--radius);width:100%}
+  .seg .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:0;background:var(--bg-button);border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.3);transform-origin:center;transform:scaleX(var(--sx,1));transition:left .34s cubic-bezier(.22,.9,.26,1),width .34s cubic-bezier(.22,.9,.26,1),transform .2s cubic-bezier(.34,1.4,.5,1),filter .34s ease;z-index:0}
+  .seg .thumb.drag{filter:blur(.6px)}
+  .seg button{position:relative;z-index:1;flex:1;background:transparent;border:none;color:var(--text-dim);padding:5px 0;font:inherit;font-size:11px;font-weight:500;border-radius:4px;cursor:pointer;transition:color .2s ease}
+  .seg button:hover{color:var(--accent)}
+  .seg button.on{color:var(--accent)}
+
+  .chk{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:12px;margin-top:4px}
+  .chk input{width:auto;accent-color:var(--accent)}
+
+  .out{margin-top:14px}
+  .row{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--bg-button);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;transition:border-color .15s ease}
+  .row:hover{border-color:var(--accent)}
+  .row .short{color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-size:13px;user-select:text}
+  .row .len{color:var(--text-dim);font-size:10px;font-family:var(--mono)}
+  .row button{background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:5px;padding:3px 8px;font:inherit;font-size:10px;cursor:pointer;transition:all .15s ease}
+  .row button:hover{border-color:var(--accent);color:var(--accent)}
+  .row button.copied{border-color:var(--accent);color:var(--accent)}
+  .empty{color:var(--text-dim);text-align:center;padding:14px;font-size:12px}
+
+  .bar{display:flex;gap:8px;margin-top:10px}
+  .bar button{flex:1;background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:var(--radius);padding:8px;font:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s ease}
+  .bar button:hover{border-color:var(--accent);color:var(--accent)}
+  .bar button:active{transform:scale(.98);background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
+  .quit{margin-top:10px;text-align:right}
+  .quit a{color:var(--text-dim);font-size:10px;text-decoration:none;cursor:pointer}
+  .quit a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+  <header>
+    <h1>name<span class="w">.short</span></h1>
+    <span class="sub">long names → tidy slugs</span>
+  </header>
+
+  <label>Names — one per line</label>
+  <textarea id="in" placeholder="Perfume Campaign Final Delivery 2026"></textarea>
+
+  <div class="controls">
+    <div class="ctrl">
+      <label>Case</label>
+      <select id="case">
+        <option value="kebab">kebab-case</option>
+        <option value="snake">snake_case</option>
+        <option value="camel">camelCase</option>
+        <option value="pascal">PascalCase</option>
+        <option value="lower">lowercase</option>
+        <option value="upper">UPPERCASE</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Strategy</label>
+      <select id="strat">
+        <option value="smart">smart (drop filler)</option>
+        <option value="initials">initials</option>
+        <option value="truncate">truncate words</option>
+        <option value="vowels">drop vowels</option>
+        <option value="full">full slug</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Max length</label>
+      <input class="num" id="max" type="number" min="0" value="24">
+    </div>
+    <div class="ctrl">
+      <label>Date</label>
+      <div class="seg" id="date">
+        <div class="thumb"></div>
+        <button data-d="none" class="on">none</button>
+        <button data-d="pre">pre</button>
+        <button data-d="post">post</button>
+      </div>
+    </div>
+  </div>
+  <label class="chk"><input type="checkbox" id="ascii" checked> ascii only</label>
+
+  <div class="out">
+    <label>Shortened</label>
+    <div id="out"><div class="empty">Type some names above ↑</div></div>
+    <div class="bar">
+      <button id="copyAll">Copy all</button>
+      <button id="sample">Sample</button>
+    </div>
+  </div>
+  <div class="quit"><a id="quit">quit name.short</a></div>
+
+<script>
+const FILLER = new Set(['a','an','the','of','for','and','or','to','in','on','with','at','by','from','final','draft','version','copy','new','working','files','file','project','folder','assets','asset','delivery','export','exports','master','client']);
+const MONTH = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+const $ = s => document.querySelector(s);
+let dateMode = 'none';
+
+// clipboard + quit bridge to Swift
+function nativeCopy(text){
+  if(window.webkit?.messageHandlers?.copy){ window.webkit.messageHandlers.copy.postMessage(text); }
+  else { navigator.clipboard?.writeText(text); }
+}
+function nativeQuit(){ window.webkit?.messageHandlers?.quit?.postMessage(''); }
+
+function today(){ const d=new Date(); return d.getFullYear()+MONTH[d.getMonth()]+String(d.getDate()).padStart(2,'0'); }
+function tokenize(s){ return s.replace(/[''`]/g,'').split(/[^A-Za-z0-9]+/).flatMap(w=>w.replace(/([a-z0-9])([A-Z])/g,'$1 $2').split(' ')).filter(Boolean); }
+function stripAscii(s){ return s.normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^\x00-\x7F]/g,''); }
+function applyStrategy(words,strat){
+  switch(strat){
+    case 'initials': return words.map(w=>w[0]).join('');
+    case 'truncate': return words.map(w=>w.length>4?w.slice(0,4):w);
+    case 'vowels': return words.map(w=>w.length>3?w[0]+w.slice(1).replace(/[aeiou]/gi,''):w);
+    case 'smart':{ let k=words.filter(w=>!FILLER.has(w.toLowerCase())||/^\d+$/.test(w)); return k.length?k:words; }
+    default: return words;
+  }
+}
+function toCase(parts,mode){
+  const arr=Array.isArray(parts)?parts:[parts], low=arr.map(w=>w.toLowerCase());
+  switch(mode){
+    case 'kebab': return low.join('-');
+    case 'snake': return low.join('_');
+    case 'lower': return low.join('');
+    case 'upper': return arr.map(w=>w.toUpperCase()).join('');
+    case 'camel': return low.map((w,i)=>i?w[0].toUpperCase()+w.slice(1):w).join('');
+    case 'pascal': return low.map(w=>w[0].toUpperCase()+w.slice(1)).join('');
+  }
+}
+function shorten(name){
+  let s=name.trim(); if(!s) return '';
+  if($('#ascii').checked) s=stripAscii(s);
+  let words=tokenize(s); if(!words.length) return '';
+  const strat=$('#strat').value, caseMode=$('#case').value;
+  const result=applyStrategy(words,strat);
+  let out=(strat==='initials')?toCase([result],caseMode):toCase(result,caseMode);
+  const max=parseInt($('#max').value)||0;
+  if(max>0&&out.length>max) out=out.slice(0,max).replace(/[-_]+$/,'');
+  const sep=caseMode==='snake'?'_':(caseMode==='kebab'?'-':'');
+  if(dateMode==='pre') out=today()+sep+out;
+  if(dateMode==='post') out=out+sep+today();
+  return out;
+}
+function saveOpts(){
+  localStorage.setItem('ns', JSON.stringify({c:$('#case').value,s:$('#strat').value,m:$('#max').value,a:$('#ascii').checked,d:dateMode}));
+}
+function render(){
+  saveOpts();
+  const lines=$('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const out=$('#out');
+  if(!lines.length){ out.innerHTML='<div class="empty">Type some names above ↑</div>'; return; }
+  out.innerHTML='';
+  lines.forEach(line=>{
+    const sh=shorten(line);
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<span class="short" title="${sh}">${sh}</span><span class="len">${sh.length}</span><button>copy</button>`;
+    const btn=row.querySelector('button');
+    btn.onclick=()=>{ nativeCopy(sh); btn.textContent='✓'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied')},900); };
+    out.appendChild(row);
+  });
+}
+
+const seg=$('#date'), thumb=seg.querySelector('.thumb');
+let dragTimer;
+function moveThumb(btn,animate){
+  const oldLeft=thumb.offsetLeft, newLeft=btn.offsetLeft;
+  if(animate&&newLeft!==oldLeft){
+    thumb.style.transformOrigin=newLeft>oldLeft?'right center':'left center';
+    thumb.style.setProperty('--sx','1.32'); thumb.classList.add('drag');
+    clearTimeout(dragTimer);
+    dragTimer=setTimeout(()=>{thumb.classList.remove('drag');thumb.style.setProperty('--sx','1');},180);
+  }
+  thumb.style.left=newLeft+'px'; thumb.style.width=btn.offsetWidth+'px';
+}
+seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  seg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  dateMode=b.dataset.d; moveThumb(b,true); render(); });
+seg.addEventListener('mouseover',e=>{ const b=e.target.closest('button'); if(!b||b.classList.contains('on'))return;
+  thumb.style.transformOrigin=(b.offsetLeft>thumb.offsetLeft)?'left center':'right center'; thumb.style.setProperty('--sx','0.9'); });
+seg.addEventListener('mouseleave',()=>thumb.style.setProperty('--sx','1'));
+
+$('#in').addEventListener('input',render);
+['case','strat','max','ascii'].forEach(id=>$('#'+id).addEventListener('change',render));
+$('#copyAll').onclick=()=>{ const lines=$('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  nativeCopy(lines.map(shorten).join('\n')); $('#copyAll').textContent='✓ copied'; setTimeout(()=>$('#copyAll').textContent='Copy all',900); };
+const EX=["Perfume Campaign Final Delivery 2026","Client Brand Identity Working Files","Untitled Project Copy Final v2","Summer Photoshoot Raw Exports","Website Redesign Master Assets"];
+$('#sample').onclick=()=>{ $('#in').value=EX[Math.floor(Math.random()*EX.length)]; render(); };
+$('#quit').onclick=nativeQuit;
+
+// restore settings
+try{ const o=JSON.parse(localStorage.getItem('ns')||'null'); if(o){
+  $('#case').value=o.c; $('#strat').value=o.s; $('#max').value=o.m; $('#ascii').checked=o.a; dateMode=o.d;
+  seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.d===o.d));
+}}catch(e){}
+$('#in').value=EX[Math.floor(Math.random()*EX.length)];
+window.addEventListener('load',()=>{ moveThumb(seg.querySelector('.on')||seg.querySelector('button'),false); render(); $('#in').focus(); });
+render();
+</script>
+</body>
+</html>
