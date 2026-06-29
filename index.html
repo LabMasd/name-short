@@ -291,10 +291,12 @@ $('#copyAll').onclick = () => {
   $('#copyAll').textContent = '✓ copied';
   setTimeout(()=>$('#copyAll').textContent='Copy all',900);
 };
-$('#sample').onclick = () => {
-  $('#in').value = "Perfume Campaign Final Delivery 2026\nClient Brand Identity Working Files\nChromeForge AE Extension Source\nQ3 Social Media Content Calendar";
-  render();
-};
+const SAMPLE = "Perfume Campaign Final Delivery 2026\nClient Brand Identity Working Files\nChromeForge AE Extension Source\nQ3 Social Media Content Calendar";
+$('#sample').onclick = () => { $('#in').value = SAMPLE; render(); };
+
+// show a worked example on first load
+$('#in').value = SAMPLE;
+render();
 </script>
 </body>
 </html>
