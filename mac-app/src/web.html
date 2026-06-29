@@ -47,6 +47,21 @@
   .seg button:hover{color:var(--accent)}
   .seg button.on{color:var(--accent)}
 
+  /* custom on-brand dropdown (replaces native select list) */
+  .cselect{position:relative}
+  .cselect>select{display:none}
+  .cselect-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:8px;font-size:12px;font-family:inherit;cursor:pointer;transition:border-color .15s ease;text-align:left}
+  .cselect.open .cselect-btn,.cselect-btn:hover{border-color:var(--accent)}
+  .cselect-btn .chev{width:10px;height:6px;flex:none;color:var(--text-dim);transition:transform .2s cubic-bezier(.34,1.4,.5,1),color .15s ease}
+  .cselect.open .cselect-btn .chev,.cselect-btn:hover .chev{color:var(--accent)}
+  .cselect.open .cselect-btn .chev{transform:rotate(180deg)}
+  .cselect-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:50;background:#141414;border:1px solid var(--border);border-radius:var(--radius);padding:4px;box-shadow:0 10px 24px rgba(0,0,0,.55);opacity:0;transform:translateY(-5px) scale(.98);transform-origin:top center;pointer-events:none;transition:opacity .16s ease,transform .18s cubic-bezier(.22,.9,.26,1)}
+  .cselect.open .cselect-list{opacity:1;transform:none;pointer-events:auto}
+  .cselect-opt{padding:7px 9px;border-radius:4px;color:var(--text-dim);font-size:12px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}
+  .cselect-opt:hover{background:var(--bg-hover);color:var(--accent)}
+  .cselect-opt.sel{color:var(--accent)}
+  .cselect-opt.sel::after{content:'✓';float:right;margin-left:14px}
+
   .chk{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:12px;margin-top:4px}
   .chk input{width:auto;accent-color:var(--accent)}
 
@@ -227,6 +242,36 @@ try{ const o=JSON.parse(localStorage.getItem('ns')||'null'); if(o){
   $('#case').value=o.c; $('#strat').value=o.s; $('#max').value=o.m; $('#ascii').checked=o.a; dateMode=o.d;
   seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.d===o.d));
 }}catch(e){}
+
+// turn native <select> into a fully styled dropdown
+function enhanceSelect(sel){
+  const wrap=document.createElement('div'); wrap.className='cselect';
+  sel.parentNode.insertBefore(wrap,sel); wrap.appendChild(sel);
+  const btn=document.createElement('button'); btn.type='button'; btn.className='cselect-btn';
+  const label=document.createElement('span'); label.className='cselect-label';
+  btn.appendChild(label);
+  btn.insertAdjacentHTML('beforeend',"<svg class='chev' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='currentColor' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  const list=document.createElement('div'); list.className='cselect-list';
+  [...sel.options].forEach(o=>{
+    const opt=document.createElement('div'); opt.className='cselect-opt'; opt.textContent=o.textContent; opt.dataset.v=o.value;
+    if(o.value===sel.value){ opt.classList.add('sel'); label.textContent=o.textContent; }
+    opt.onclick=()=>{
+      sel.value=o.value; label.textContent=o.textContent;
+      list.querySelectorAll('.cselect-opt').forEach(x=>x.classList.toggle('sel',x===opt));
+      wrap.classList.remove('open');
+      sel.dispatchEvent(new Event('change'));
+    };
+    list.appendChild(opt);
+  });
+  btn.onclick=e=>{ e.stopPropagation();
+    document.querySelectorAll('.cselect.open').forEach(w=>{ if(w!==wrap) w.classList.remove('open'); });
+    wrap.classList.toggle('open');
+  };
+  wrap.appendChild(btn); wrap.appendChild(list);
+}
+enhanceSelect($('#case')); enhanceSelect($('#strat'));
+document.addEventListener('click',()=>document.querySelectorAll('.cselect.open').forEach(w=>w.classList.remove('open')));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.cselect.open').forEach(w=>w.classList.remove('open')); });
 $('#in').value=EX[Math.floor(Math.random()*EX.length)];
 window.addEventListener('load',()=>{ moveThumb(seg.querySelector('.on')||seg.querySelector('button'),false); render(); $('#in').focus(); });
 render();
