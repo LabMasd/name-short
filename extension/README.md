@@ -23,4 +23,4 @@ A popup version of [name.short](https://labmasd.github.io/name-short/): turn lon
 | `background.js` | context-menu service worker |
 | `icons/` | 16 / 48 / 128 px icons |
 
-Built by [masd.cc](https://masd.cc).
+Built by [masd.cc](https://masd.cc) · [@masd.lab on Instagram](https://www.instagram.com/masd.lab)

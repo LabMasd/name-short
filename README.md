@@ -17,4 +17,4 @@ Plus a max-length cap and optional `YYYYMMDD` date prefix/suffix.
 - **Chrome extension** — [`extension/`](extension/) — popup + right-click "shorten selection → copy"
 - **macOS menu-bar app** — [`mac-app/`](mac-app/) — native Swift menu-bar popover, copies to system clipboard
 
-Built by [masd.cc](https://masd.cc).
+Built by [masd.cc](https://masd.cc) · [@masd.lab on Instagram](https://www.instagram.com/masd.lab)

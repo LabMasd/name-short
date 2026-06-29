@@ -18,4 +18,4 @@ Requires the Xcode command-line tools (Swift). The app is **ad-hoc signed** — 
 - Menu-bar glyph is a template-rendered `n.` (adapts to light/dark menu bar).
 - `build/` is git-ignored — build locally.
 
-Built by [masd.cc](https://masd.cc).
+Built by [masd.cc](https://masd.cc) · [@masd.lab on Instagram](https://www.instagram.com/masd.lab)
