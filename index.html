@@ -8,64 +8,101 @@
 <meta property="og:title" content="name.short">
 <meta property="og:description" content="Long names → tidy folder-safe slugs. Runs entirely in your browser.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#0d0d0f">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%236ee7a8'>.</text></svg>">
+<meta name="theme-color" content="#1a1a1a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23ced2a1'>.</text></svg>">
 <style>
   :root{
-    --bg:#0d0d0f; --panel:#161619; --line:#26262b; --txt:#e8e8ea;
-    --dim:#8a8a92; --accent:#6ee7a8; --accent-dim:#2a4a3a; --warn:#f0a868;
+    /* masd.cc design direction */
+    --bg-primary:#1a1a1a;
+    --bg-button:#252525;
+    --bg-hover:#2a2a2a;
+    --bg-input:#2a2a2a;
+    --accent:#ced2a1;
+    --accent-hover:#dde2b1;
+    --text:#e0e0e0;
+    --text-dim:#888;
+    --border:#333;
+    --danger:#e57373;
+    --gap:8px;
+    --padding:12px;
+    --radius:6px;
+    --mono:'SF Mono','Monaco','Consolas',ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    background:var(--bg); color:var(--txt);
-    font:13px/1.5 ui-monospace,"SF Mono",Menlo,monospace;
-    min-height:100vh; padding:28px; display:flex; justify-content:center;
+    background:#111;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:14px;line-height:1.6;
+    min-height:100vh;padding:40px 28px;display:flex;justify-content:center;
   }
   .wrap{width:100%;max-width:680px}
-  header{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
-  h1{font-size:18px;font-weight:600;letter-spacing:-.5px}
-  h1 .dot{color:var(--accent)}
-  .sub{color:var(--dim);font-size:11px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
-  label{display:block;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  header{display:flex;align-items:baseline;gap:10px;margin-bottom:28px}
+  h1{font-size:28px;font-weight:600;letter-spacing:-.5px;color:var(--accent)}
+  h1 .dot{color:var(--text)}
+  .sub{color:var(--text-dim);font-size:13px}
+
+  .panel{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  label{display:block;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
   textarea,input{
-    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);
-    border-radius:7px;padding:10px;font:inherit;resize:vertical;
+    width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+    border-radius:var(--radius);padding:10px;font-size:13px;line-height:1.6;font-family:var(--mono);resize:vertical;
+    transition:border-color .15s ease;
   }
   textarea{min-height:88px}
-  textarea:focus,input:focus{outline:none;border-color:var(--accent-dim)}
-  .controls{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+  textarea::placeholder,input::placeholder{color:var(--text-dim)}
+
+  .controls{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px}
   .ctrl{display:flex;flex-direction:column;gap:6px}
   .ctrl label{margin:0}
   select,.num{
-    background:var(--bg);border:1px solid var(--line);color:var(--txt);
-    border-radius:6px;padding:7px 9px;font:inherit;cursor:pointer;
+    background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+    border-radius:var(--radius);padding:7px 9px;font-size:12px;font-family:inherit;cursor:pointer;
+    transition:border-color .15s ease;
   }
-  .num{width:72px}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-  .seg button{background:var(--bg);border:none;color:var(--dim);padding:7px 11px;font:inherit;cursor:pointer}
-  .seg button.on{background:var(--accent-dim);color:var(--accent)}
-  .chk{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--txt);user-select:none}
-  .chk input{width:auto}
+  select:focus,.num:focus{outline:none;border-color:var(--accent)}
+  .num{width:72px;font-family:var(--mono)}
+
+  /* segmented toggle — accent on border/text, never as fill (per design direction) */
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .seg button{background:var(--bg-button);border:none;color:var(--text-dim);padding:7px 11px;font:inherit;font-size:12px;cursor:pointer;transition:all .15s ease}
+  .seg button:hover{background:var(--bg-hover);color:var(--accent)}
+  .seg button.on{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+  .chk{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text);user-select:none;font-size:12px}
+  .chk input{width:auto;accent-color:var(--accent)}
+
   .out{margin-top:4px}
   .row{
     display:flex;align-items:center;gap:10px;padding:9px 11px;
-    background:var(--bg);border:1px solid var(--line);border-radius:7px;margin-bottom:7px;
-    transition:border-color .12s;
+    background:var(--bg-button);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;
+    transition:border-color .15s ease;
   }
-  .row:hover{border-color:var(--accent-dim)}
-  .row .orig{color:var(--dim);font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .row .arrow{color:var(--line)}
-  .row .short{color:var(--accent);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
-  .row .len{color:var(--dim);font-size:10px;min-width:54px;text-align:right}
-  .row button{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:5px;padding:4px 9px;font:inherit;cursor:pointer}
-  .row button:hover{border-color:var(--accent);color:var(--accent)}
+  .row:hover{border-color:var(--accent)}
+  .row .orig{color:var(--text-dim);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+  .row .arrow{color:var(--border)}
+  .row .short{color:var(--accent);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-family:var(--mono);font-size:13px}
+  .row .len{color:var(--text-dim);font-size:10px;min-width:50px;text-align:right;font-family:var(--mono)}
+  .row button{background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:5px;padding:4px 9px;font:inherit;font-size:11px;cursor:pointer;transition:all .15s ease}
+  .row button:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--accent)}
+  .row button:active{background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
   .row button.copied{border-color:var(--accent);color:var(--accent)}
-  .bar{display:flex;gap:9px;margin-top:12px}
-  .bar button{flex:1;background:var(--accent-dim);border:1px solid transparent;color:var(--accent);border-radius:7px;padding:9px;font:inherit;cursor:pointer;font-weight:600}
-  .bar button.ghost{background:var(--bg);border-color:var(--line);color:var(--dim)}
-  .bar button:hover{border-color:var(--accent)}
-  .empty{color:var(--dim);text-align:center;padding:20px;font-size:12px}
+
+  .bar{display:flex;gap:var(--gap);margin-top:12px}
+  .bar button{
+    flex:1;background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);
+    border-radius:var(--radius);padding:10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .bar button:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--accent)}
+  .bar button:active{transform:scale(.98);background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
+
+  .empty{color:var(--text-dim);text-align:center;padding:20px;font-size:13px}
+
+  footer{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);text-align:center;color:var(--text-dim);font-size:11px}
+  footer a{color:var(--accent);text-decoration:none}
+  footer a:hover{color:var(--accent-hover)}
 </style>
 </head>
 <body>
@@ -124,13 +161,13 @@
     <div id="out"><div class="empty">Type some names above ↑</div></div>
     <div class="bar">
       <button id="copyAll">Copy all</button>
-      <button id="sample" class="ghost">Load sample</button>
+      <button id="sample">Load sample</button>
     </div>
   </div>
 
-  <footer style="text-align:center;color:var(--dim);font-size:11px;padding:6px 0 2px">
+  <footer>
     runs entirely in your browser · nothing leaves this page ·
-    <a href="https://masd.cc" style="color:var(--accent);text-decoration:none">masd.cc</a>
+    <a href="https://masd.cc">masd.cc</a>
   </footer>
 </div>
 
@@ -150,7 +187,6 @@ function tokenize(s){
   return s
     .replace(/[''`]/g,'')
     .split(/[^A-Za-z0-9]+/)
-    // split camelCase boundaries
     .flatMap(w => w.replace(/([a-z0-9])([A-Z])/g,'$1 $2').split(' '))
     .filter(Boolean);
 }
@@ -207,8 +243,9 @@ function shorten(name){
   const max = parseInt($('#max').value) || 0;
   if(max > 0 && out.length > max) out = out.slice(0, max).replace(/[-_]+$/,'');
 
-  if(dateMode === 'pre'){ const sep = caseMode==='snake'?'_':(caseMode==='kebab'?'-':''); out = today()+sep+out; }
-  if(dateMode === 'post'){ const sep = caseMode==='snake'?'_':(caseMode==='kebab'?'-':''); out = out+sep+today(); }
+  const sep = caseMode==='snake'?'_':(caseMode==='kebab'?'-':'');
+  if(dateMode === 'pre') out = today()+sep+out;
+  if(dateMode === 'post') out = out+sep+today();
 
   return out;
 }
