@@ -72,11 +72,11 @@
     position:absolute;top:2px;bottom:2px;left:2px;width:0;
     background:var(--bg-button);border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.3);
     transform-origin:center;
-    transform:translateX(var(--nudge,0px)) scaleX(var(--sx,1));
-    transition:left .34s cubic-bezier(.22,.9,.26,1),width .34s cubic-bezier(.22,.9,.26,1),transform .26s cubic-bezier(.34,1.4,.5,1),filter .34s ease;
+    transform:scaleX(var(--sx,1));
+    transition:left .34s cubic-bezier(.22,.9,.26,1),width .34s cubic-bezier(.22,.9,.26,1),transform .2s cubic-bezier(.34,1.4,.5,1),filter .34s ease;
     z-index:0;
   }
-  .seg .thumb.drag{--sx:1.32;filter:blur(.6px)}
+  .seg .thumb.drag{filter:blur(.6px)}
   .seg button{position:relative;z-index:1;flex:1;background:transparent;border:none;color:var(--text-dim);padding:6px 16px;font:inherit;font-size:12px;font-weight:500;border-radius:4px;cursor:pointer;transition:color .2s ease}
   .seg button:hover{color:var(--accent)}
   .seg button.on{color:var(--accent)}
@@ -298,9 +298,10 @@ function moveThumb(btn, animate){
   if(animate && newLeft !== oldLeft){
     // anchor the leading edge so only the trailing side stretches out
     thumb.style.transformOrigin = newLeft > oldLeft ? 'right center' : 'left center';
+    thumb.style.setProperty('--sx','1.32');
     thumb.classList.add('drag');
     clearTimeout(dragTimer);
-    dragTimer = setTimeout(()=>thumb.classList.remove('drag'), 180);
+    dragTimer = setTimeout(()=>{ thumb.classList.remove('drag'); thumb.style.setProperty('--sx','1'); }, 180);
   }
   thumb.style.left = newLeft + 'px';
   thumb.style.width = btn.offsetWidth + 'px';
@@ -310,18 +311,19 @@ seg.addEventListener('click', e => {
   if(!btn) return;
   seg.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  thumb.style.setProperty('--nudge','0px'); // clear anticipation lean
   moveThumb(btn, true);
   dateMode = btn.dataset.d; render();
 });
-// anticipation: lean toward a hovered (inactive) option before committing
+// anticipation: leading edge winds back (squash) toward where it's about to go
 seg.addEventListener('mouseover', e => {
   const btn = e.target.closest('button');
   if(!btn || btn.classList.contains('on')) return;
-  const dir = btn.offsetLeft > thumb.offsetLeft ? 1 : -1;
-  thumb.style.setProperty('--nudge', (dir*5)+'px');
+  const goingRight = btn.offsetLeft > thumb.offsetLeft;
+  // anchor the trailing edge so the LEADING edge pulls back
+  thumb.style.transformOrigin = goingRight ? 'left center' : 'right center';
+  thumb.style.setProperty('--sx','0.9');
 });
-seg.addEventListener('mouseleave', ()=> thumb.style.setProperty('--nudge','0px'));
+seg.addEventListener('mouseleave', ()=> thumb.style.setProperty('--sx','1'));
 // place thumb under the default active option (no animation)
 window.addEventListener('load', ()=>moveThumb(seg.querySelector('.on'), false));
 window.addEventListener('resize', ()=>moveThumb(seg.querySelector('.on'), false));
