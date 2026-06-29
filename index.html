@@ -292,13 +292,17 @@ $('#in').addEventListener('input', render);
 const seg = $('#date'), thumb = seg.querySelector('.thumb');
 let dragTimer;
 function moveThumb(btn, animate){
-  thumb.style.left = btn.offsetLeft + 'px';
-  thumb.style.width = btn.offsetWidth + 'px';
-  if(animate){
-    thumb.classList.add('drag');           // stretch + blur while it travels
+  const oldLeft = thumb.offsetLeft;
+  const newLeft = btn.offsetLeft;
+  if(animate && newLeft !== oldLeft){
+    // anchor the leading edge so only the trailing side stretches out
+    thumb.style.transformOrigin = newLeft > oldLeft ? 'right center' : 'left center';
+    thumb.classList.add('drag');
     clearTimeout(dragTimer);
     dragTimer = setTimeout(()=>thumb.classList.remove('drag'), 180);
   }
+  thumb.style.left = newLeft + 'px';
+  thumb.style.width = btn.offsetWidth + 'px';
 }
 seg.addEventListener('click', e => {
   const btn = e.target.closest('button');
