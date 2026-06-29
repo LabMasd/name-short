@@ -65,6 +65,12 @@
   }
   select:focus,.num:focus{outline:none;border-color:var(--accent)}
   .num{width:72px;font-family:var(--mono)}
+  select{
+    appearance:none;-webkit-appearance:none;padding-right:28px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
+  select:hover{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23ced2a1' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 
   /* segmented toggle — sliding pill that drags + smears between options */
   .seg{position:relative;display:inline-flex;gap:2px;padding:2px;background:#141414;border:1px solid var(--border);border-radius:var(--radius)}
