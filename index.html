@@ -66,18 +66,20 @@
   select:focus,.num:focus{outline:none;border-color:var(--accent)}
   .num{width:72px;font-family:var(--mono)}
 
-  /* segmented toggle — recessed track, raised pill for active, accent text only */
-  .seg{display:inline-flex;gap:2px;padding:2px;background:#141414;border:1px solid var(--border);border-radius:var(--radius)}
-  .seg button{flex:1;background:transparent;border:none;color:var(--text-dim);padding:6px 16px;font:inherit;font-size:12px;font-weight:500;border-radius:4px;cursor:pointer;transition:all .15s ease}
-  .seg button:hover{color:var(--accent)}
-  .seg button.on{background:var(--bg-button);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.3)}
-  .seg button.smear{animation:segSmear .3s cubic-bezier(.16,.84,.28,1)}
-  @keyframes segSmear{
-    0%{transform:skewX(-16deg) scaleX(1.22);opacity:.35}
-    55%{transform:skewX(5deg) scaleX(.97);opacity:1}
-    100%{transform:none}
+  /* segmented toggle — sliding pill that drags + smears between options */
+  .seg{position:relative;display:inline-flex;gap:2px;padding:2px;background:#141414;border:1px solid var(--border);border-radius:var(--radius)}
+  .seg .thumb{
+    position:absolute;top:2px;bottom:2px;left:2px;width:0;
+    background:var(--bg-button);border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.3);
+    transform-origin:center;
+    transition:left .34s cubic-bezier(.22,.9,.26,1),width .34s cubic-bezier(.22,.9,.26,1),transform .34s cubic-bezier(.22,.9,.26,1),filter .34s ease;
+    z-index:0;
   }
-  @media (prefers-reduced-motion:reduce){.seg button.smear{animation:none}}
+  .seg .thumb.drag{transform:scaleX(1.32);filter:blur(.6px)}
+  .seg button{position:relative;z-index:1;flex:1;background:transparent;border:none;color:var(--text-dim);padding:6px 16px;font:inherit;font-size:12px;font-weight:500;border-radius:4px;cursor:pointer;transition:color .2s ease}
+  .seg button:hover{color:var(--accent)}
+  .seg button.on{color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){.seg .thumb{transition:left .01s,width .01s}.seg .thumb.drag{transform:none;filter:none}}
 
   .chk{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text);user-select:none;font-size:12px}
   .chk input{width:auto;accent-color:var(--accent)}
@@ -91,16 +93,7 @@
   .row:hover{border-color:var(--accent)}
   .row .orig{color:var(--text-dim);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
   .row .arrow{color:var(--border)}
-  .row .short{color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;transform-origin:left center}
-  .row .short.smear{animation:smear .34s cubic-bezier(.16,.84,.28,1)}
-  @keyframes smear{
-    0%{opacity:0;transform:translateX(-14px) skewX(-18deg) scaleX(1.18);
-       text-shadow:10px 0 7px rgba(255,255,255,.55),20px 0 14px rgba(255,255,255,.28),30px 0 20px rgba(206,210,161,.18)}
-    55%{opacity:1;transform:translateX(2px) skewX(4deg) scaleX(1.03);
-       text-shadow:4px 0 5px rgba(255,255,255,.25),9px 0 9px rgba(255,255,255,.1)}
-    100%{opacity:1;transform:none;text-shadow:none}
-  }
-  @media (prefers-reduced-motion:reduce){.row .short.smear{animation:none}}
+  .row .short{color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px}
   .row .len{color:var(--text-dim);font-size:10px;min-width:50px;text-align:right;font-family:var(--mono)}
   .row button{background:var(--bg-button);border:1px solid var(--border);color:var(--text-dim);border-radius:5px;padding:4px 9px;font:inherit;font-size:11px;cursor:pointer;transition:all .15s ease}
   .row button:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--accent)}
@@ -163,6 +156,7 @@
       <div class="ctrl">
         <label>Date</label>
         <div class="seg" id="date">
+          <div class="thumb"></div>
           <button data-d="none" class="on">none</button>
           <button data-d="pre">pre</button>
           <button data-d="post">post</button>
@@ -268,24 +262,19 @@ function shorten(name){
   return out;
 }
 
-let prevShorts = new Map();
 function render(){
   const lines = $('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
   const out = $('#out');
-  if(lines.length === 0){ out.innerHTML = '<div class="empty">Type some names above ↑</div>'; prevShorts.clear(); return; }
+  if(lines.length === 0){ out.innerHTML = '<div class="empty">Type some names above ↑</div>'; return; }
   out.innerHTML = '';
-  const next = new Map();
-  lines.forEach((line, i) => {
+  lines.forEach(line => {
     const sh = shorten(line);
-    const key = i+'|'+line;
-    const changed = prevShorts.get(key) !== sh;
-    next.set(key, sh);
     const row = document.createElement('div');
     row.className = 'row';
     row.innerHTML = `
       <span class="orig" title="${line.replace(/"/g,'&quot;')}">${line}</span>
       <span class="arrow">→</span>
-      <span class="short${changed?' smear':''}" title="${sh}">${sh}</span>
+      <span class="short" title="${sh}">${sh}</span>
       <span class="len">${sh.length} ch</span>
       <button>copy</button>`;
     const btn = row.querySelector('button');
@@ -296,19 +285,32 @@ function render(){
     };
     out.appendChild(row);
   });
-  prevShorts = next;
 }
 
 $('#in').addEventListener('input', render);
 ['case','strat','max','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
-$('#date').addEventListener('click', e => {
-  if(e.target.tagName!=='BUTTON') return;
-  $('#date').querySelectorAll('button').forEach(b=>b.classList.remove('on','smear'));
-  e.target.classList.add('on');
-  void e.target.offsetWidth; // retrigger animation
-  e.target.classList.add('smear');
-  dateMode = e.target.dataset.d; render();
+const seg = $('#date'), thumb = seg.querySelector('.thumb');
+let dragTimer;
+function moveThumb(btn, animate){
+  thumb.style.left = btn.offsetLeft + 'px';
+  thumb.style.width = btn.offsetWidth + 'px';
+  if(animate){
+    thumb.classList.add('drag');           // stretch + blur while it travels
+    clearTimeout(dragTimer);
+    dragTimer = setTimeout(()=>thumb.classList.remove('drag'), 180);
+  }
+}
+seg.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  seg.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  moveThumb(btn, true);
+  dateMode = btn.dataset.d; render();
 });
+// place thumb under the default active option (no animation)
+window.addEventListener('load', ()=>moveThumb(seg.querySelector('.on'), false));
+window.addEventListener('resize', ()=>moveThumb(seg.querySelector('.on'), false));
 $('#copyAll').onclick = () => {
   const lines = $('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
   const txt = lines.map(shorten).join('\n');
