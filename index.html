@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>name.short — long names → tidy folder slugs</title>
+<meta name="description" content="A tiny tool that turns long names into short, folder-safe slugs. Smart filler-drop, kebab/snake/camel, date stamps, ascii-safe. Free, runs in your browser.">
+<meta property="og:title" content="name.short">
+<meta property="og:description" content="Long names → tidy folder-safe slugs. Runs entirely in your browser.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%236ee7a8'>.</text></svg>">
+<style>
+  :root{
+    --bg:#0d0d0f; --panel:#161619; --line:#26262b; --txt:#e8e8ea;
+    --dim:#8a8a92; --accent:#6ee7a8; --accent-dim:#2a4a3a; --warn:#f0a868;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font:13px/1.5 ui-monospace,"SF Mono",Menlo,monospace;
+    min-height:100vh; padding:28px; display:flex; justify-content:center;
+  }
+  .wrap{width:100%;max-width:680px}
+  header{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
+  h1{font-size:18px;font-weight:600;letter-spacing:-.5px}
+  h1 .dot{color:var(--accent)}
+  .sub{color:var(--dim);font-size:11px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+  label{display:block;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  textarea,input{
+    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);
+    border-radius:7px;padding:10px;font:inherit;resize:vertical;
+  }
+  textarea{min-height:88px}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent-dim)}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+  .ctrl{display:flex;flex-direction:column;gap:6px}
+  .ctrl label{margin:0}
+  select,.num{
+    background:var(--bg);border:1px solid var(--line);color:var(--txt);
+    border-radius:6px;padding:7px 9px;font:inherit;cursor:pointer;
+  }
+  .num{width:72px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{background:var(--bg);border:none;color:var(--dim);padding:7px 11px;font:inherit;cursor:pointer}
+  .seg button.on{background:var(--accent-dim);color:var(--accent)}
+  .chk{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--txt);user-select:none}
+  .chk input{width:auto}
+  .out{margin-top:4px}
+  .row{
+    display:flex;align-items:center;gap:10px;padding:9px 11px;
+    background:var(--bg);border:1px solid var(--line);border-radius:7px;margin-bottom:7px;
+    transition:border-color .12s;
+  }
+  .row:hover{border-color:var(--accent-dim)}
+  .row .orig{color:var(--dim);font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .arrow{color:var(--line)}
+  .row .short{color:var(--accent);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+  .row .len{color:var(--dim);font-size:10px;min-width:54px;text-align:right}
+  .row button{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:5px;padding:4px 9px;font:inherit;cursor:pointer}
+  .row button:hover{border-color:var(--accent);color:var(--accent)}
+  .row button.copied{border-color:var(--accent);color:var(--accent)}
+  .bar{display:flex;gap:9px;margin-top:12px}
+  .bar button{flex:1;background:var(--accent-dim);border:1px solid transparent;color:var(--accent);border-radius:7px;padding:9px;font:inherit;cursor:pointer;font-weight:600}
+  .bar button.ghost{background:var(--bg);border-color:var(--line);color:var(--dim)}
+  .bar button:hover{border-color:var(--accent)}
+  .empty{color:var(--dim);text-align:center;padding:20px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>name<span class="dot">.</span>short</h1>
+    <span class="sub">long names → tidy folder-safe slugs</span>
+  </header>
+
+  <div class="panel">
+    <label>Names — one per line</label>
+    <textarea id="in" placeholder="Perfume Campaign Final Delivery 2026&#10;Client Brand Identity Working Files&#10;ChromeForge AE Extension Source"></textarea>
+
+    <div class="controls">
+      <div class="ctrl">
+        <label>Case</label>
+        <select id="case">
+          <option value="kebab">kebab-case</option>
+          <option value="snake">snake_case</option>
+          <option value="camel">camelCase</option>
+          <option value="pascal">PascalCase</option>
+          <option value="lower">lowercase</option>
+          <option value="upper">UPPERCASE</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Strategy</label>
+        <select id="strat">
+          <option value="smart">smart (drop filler)</option>
+          <option value="initials">initials</option>
+          <option value="truncate">truncate words</option>
+          <option value="vowels">drop vowels</option>
+          <option value="full">full slug</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Max length</label>
+        <input class="num" id="max" type="number" min="0" value="24">
+      </div>
+      <div class="ctrl">
+        <label>Date</label>
+        <div class="seg" id="date">
+          <button data-d="none" class="on">none</button>
+          <button data-d="pre">pre</button>
+          <button data-d="post">post</button>
+        </div>
+      </div>
+      <div class="ctrl" style="justify-content:flex-end">
+        <label class="chk"><input type="checkbox" id="ascii" checked> ascii only</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel out">
+    <label>Shortened</label>
+    <div id="out"><div class="empty">Type some names above ↑</div></div>
+    <div class="bar">
+      <button id="copyAll">Copy all</button>
+      <button id="sample" class="ghost">Load sample</button>
+    </div>
+  </div>
+
+  <footer style="text-align:center;color:var(--dim);font-size:11px;padding:6px 0 2px">
+    runs entirely in your browser · nothing leaves this page ·
+    <a href="https://masd.cc" style="color:var(--accent);text-decoration:none">masd.cc</a>
+  </footer>
+</div>
+
+<script>
+const FILLER = new Set(['a','an','the','of','for','and','or','to','in','on','with','at','by','from','final','draft','version','copy','new','working','files','file','project','folder','assets','asset','delivery','export','exports','master','client']);
+const MONTH = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+
+const $ = s => document.querySelector(s);
+let dateMode = 'none';
+
+function today(){
+  const d = new Date();
+  return d.getFullYear()+MONTH[d.getMonth()]+String(d.getDate()).padStart(2,'0');
+}
+
+function tokenize(s){
+  return s
+    .replace(/[''`]/g,'')
+    .split(/[^A-Za-z0-9]+/)
+    // split camelCase boundaries
+    .flatMap(w => w.replace(/([a-z0-9])([A-Z])/g,'$1 $2').split(' '))
+    .filter(Boolean);
+}
+
+function stripAscii(s){
+  return s.normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^\x00-\x7F]/g,'');
+}
+
+function applyStrategy(words, strat){
+  switch(strat){
+    case 'initials':
+      return words.map(w => w[0]).join('');
+    case 'truncate':
+      return words.map(w => w.length > 4 ? w.slice(0,4) : w);
+    case 'vowels':
+      return words.map(w => w.length > 3 ? w[0]+w.slice(1).replace(/[aeiou]/gi,'') : w);
+    case 'smart':{
+      let kept = words.filter(w => !FILLER.has(w.toLowerCase()) || /^\d+$/.test(w));
+      if(kept.length === 0) kept = words;
+      return kept;
+    }
+    case 'full':
+    default:
+      return words;
+  }
+}
+
+function toCase(parts, mode){
+  const arr = Array.isArray(parts) ? parts : [parts];
+  const low = arr.map(w => w.toLowerCase());
+  switch(mode){
+    case 'kebab': return low.join('-');
+    case 'snake': return low.join('_');
+    case 'lower': return low.join('');
+    case 'upper': return arr.map(w=>w.toUpperCase()).join('');
+    case 'camel': return low.map((w,i)=> i? w[0].toUpperCase()+w.slice(1) : w).join('');
+    case 'pascal': return low.map(w=> w[0].toUpperCase()+w.slice(1)).join('');
+  }
+}
+
+function shorten(name){
+  let s = name.trim();
+  if(!s) return '';
+  if($('#ascii').checked) s = stripAscii(s);
+  let words = tokenize(s);
+  if(words.length === 0) return '';
+
+  const strat = $('#strat').value;
+  const caseMode = $('#case').value;
+  const result = applyStrategy(words, strat);
+
+  let out = (strat === 'initials') ? toCase([result], caseMode) : toCase(result, caseMode);
+
+  const max = parseInt($('#max').value) || 0;
+  if(max > 0 && out.length > max) out = out.slice(0, max).replace(/[-_]+$/,'');
+
+  if(dateMode === 'pre'){ const sep = caseMode==='snake'?'_':(caseMode==='kebab'?'-':''); out = today()+sep+out; }
+  if(dateMode === 'post'){ const sep = caseMode==='snake'?'_':(caseMode==='kebab'?'-':''); out = out+sep+today(); }
+
+  return out;
+}
+
+function render(){
+  const lines = $('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const out = $('#out');
+  if(lines.length === 0){ out.innerHTML = '<div class="empty">Type some names above ↑</div>'; return; }
+  out.innerHTML = '';
+  lines.forEach(line => {
+    const sh = shorten(line);
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <span class="orig" title="${line.replace(/"/g,'&quot;')}">${line}</span>
+      <span class="arrow">→</span>
+      <span class="short" title="${sh}">${sh}</span>
+      <span class="len">${sh.length} ch</span>
+      <button>copy</button>`;
+    const btn = row.querySelector('button');
+    btn.onclick = () => {
+      navigator.clipboard.writeText(sh);
+      btn.textContent = '✓'; btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied')},900);
+    };
+    out.appendChild(row);
+  });
+}
+
+$('#in').addEventListener('input', render);
+['case','strat','max','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
+$('#date').addEventListener('click', e => {
+  if(e.target.tagName!=='BUTTON') return;
+  $('#date').querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  e.target.classList.add('on'); dateMode = e.target.dataset.d; render();
+});
+$('#copyAll').onclick = () => {
+  const lines = $('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const txt = lines.map(shorten).join('\n');
+  navigator.clipboard.writeText(txt);
+  $('#copyAll').textContent = '✓ copied';
+  setTimeout(()=>$('#copyAll').textContent='Copy all',900);
+};
+$('#sample').onclick = () => {
+  $('#in').value = "Perfume Campaign Final Delivery 2026\nClient Brand Identity Working Files\nChromeForge AE Extension Source\nQ3 Social Media Content Calendar";
+  render();
+};
+</script>
+</body>
+</html>
