@@ -133,11 +133,11 @@
   @media (pointer:fine){
     *{cursor:none !important}
     .ns-ring,.ns-dot{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;opacity:0}
-    .ns-ring{width:26px;height:26px;border:1.5px solid var(--accent);
+    .ns-ring{width:16px;height:16px;border:1.5px solid var(--accent);
       transition:width .2s ease,height .2s ease,background .2s ease,border-color .2s ease,opacity .25s ease}
-    .ns-dot{width:5px;height:5px;background:var(--accent);transition:opacity .25s ease}
-    .ns-ring.hot{width:42px;height:42px;background:rgba(206,210,161,.12)}
-    .ns-ring.down{width:18px;height:18px;border-color:var(--accent-hover)}
+    .ns-dot{width:4px;height:4px;background:var(--accent);transition:opacity .25s ease}
+    .ns-ring.hot{width:28px;height:28px;background:rgba(206,210,161,.12)}
+    .ns-ring.down{width:11px;height:11px;border-color:var(--accent-hover)}
     body.ns-ready .ns-ring,body.ns-ready .ns-dot{opacity:1}
     body.ns-out .ns-ring,body.ns-out .ns-dot{opacity:0}
   }
