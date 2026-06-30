@@ -65,6 +65,13 @@
   }
   select:focus,.num:focus{outline:none;border-color:var(--accent)}
   .num{width:72px;font-family:var(--mono)}
+  /* max-length slider */
+  .lbl-val{text-transform:none;color:var(--accent);margin-left:6px;font-family:var(--mono);font-size:11px}
+  .slider{-webkit-appearance:none;appearance:none;width:150px;height:4px;border-radius:3px;background:var(--border);outline:none;cursor:pointer;padding:0;margin:13px 0 7px}
+  .slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #111;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+  .slider::-webkit-slider-thumb:hover{transform:scale(1.18);box-shadow:0 0 0 5px rgba(206,210,161,.15)}
+  .slider:active::-webkit-slider-thumb{transform:scale(1.06);box-shadow:0 0 0 7px rgba(206,210,161,.18)}
+  .slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #111;cursor:pointer}
   select{
     appearance:none;-webkit-appearance:none;padding-right:28px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -121,6 +128,19 @@
   footer{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);text-align:center;color:var(--text-dim);font-size:11px}
   footer a{color:var(--accent);text-decoration:none}
   footer a:hover{color:var(--accent-hover)}
+
+  /* custom cursor — accent ring + dot (mouse only) */
+  @media (pointer:fine){
+    *{cursor:none !important}
+    .ns-ring,.ns-dot{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;opacity:0}
+    .ns-ring{width:26px;height:26px;border:1.5px solid var(--accent);
+      transition:width .2s ease,height .2s ease,background .2s ease,border-color .2s ease,opacity .25s ease}
+    .ns-dot{width:5px;height:5px;background:var(--accent);transition:opacity .25s ease}
+    .ns-ring.hot{width:42px;height:42px;background:rgba(206,210,161,.12)}
+    .ns-ring.down{width:18px;height:18px;border-color:var(--accent-hover)}
+    body.ns-ready .ns-ring,body.ns-ready .ns-dot{opacity:1}
+    body.ns-out .ns-ring,body.ns-out .ns-dot{opacity:0}
+  }
 </style>
 </head>
 <body>
@@ -157,8 +177,9 @@
         </select>
       </div>
       <div class="ctrl">
-        <label>Max length</label>
-        <input class="num" id="max" type="number" min="0" value="24">
+        <label>Max length<span class="lbl-val" id="maxVal">24</span></label>
+        <input type="hidden" id="max" value="24">
+        <input class="slider" id="maxRange" type="range" min="0" max="6" step="1" value="4">
       </div>
       <div class="ctrl">
         <label>Date</label>
@@ -296,7 +317,18 @@ function render(){
 }
 
 $('#in').addEventListener('input', render);
-['case','strat','max','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
+['case','strat','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
+
+// max-length slider snaps to clean stops (0 = no limit)
+const MAX_STOPS = [0, 6, 12, 18, 24, 36, 48];
+const maxRange = $('#maxRange'), maxHidden = $('#max'), maxVal = $('#maxVal');
+function syncMax(){
+  const v = MAX_STOPS[+maxRange.value];
+  maxHidden.value = v;
+  maxVal.textContent = v === 0 ? 'off' : v;
+  render();
+}
+maxRange.addEventListener('input', syncMax);
 const seg = $('#date'), thumb = seg.querySelector('.thumb');
 let dragTimer;
 function moveThumb(btn, animate){
@@ -357,6 +389,29 @@ $('#sample').onclick = () => { $('#in').value = pick(); render(); };
 // show one random worked example on first load
 $('#in').value = pick();
 render();
+
+// custom cursor: precise dot + trailing accent ring
+(function(){
+  if(!matchMedia('(pointer:fine)').matches) return;
+  const ring = document.createElement('div'); ring.className = 'ns-ring';
+  const dot  = document.createElement('div'); dot.className  = 'ns-dot';
+  document.body.append(ring, dot);
+  let mx = innerWidth/2, my = innerHeight/2, rx = mx, ry = my;
+  const place = (el,x,y) => el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
+  place(dot,mx,my); place(ring,rx,ry);
+  addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY; place(dot,mx,my);
+    document.body.classList.add('ns-ready'); document.body.classList.remove('ns-out');
+  }, {passive:true});
+  (function loop(){ rx += (mx-rx)*0.18; ry += (my-ry)*0.18; place(ring,rx,ry); requestAnimationFrame(loop); })();
+  addEventListener('mousedown', ()=>ring.classList.add('down'));
+  addEventListener('mouseup',   ()=>ring.classList.remove('down'));
+  document.addEventListener('mouseleave', ()=>document.body.classList.add('ns-out'));
+  document.addEventListener('mouseenter', ()=>document.body.classList.remove('ns-out'));
+  const HOT = 'button,select,a,input,textarea,.seg button,.row';
+  addEventListener('mouseover', e => { if(e.target.closest(HOT)) ring.classList.add('hot'); }, true);
+  addEventListener('mouseout',  e => { if(e.target.closest(HOT)) ring.classList.remove('hot'); }, true);
+})();
 </script>
 </body>
 </html>
