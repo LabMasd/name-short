@@ -63,7 +63,47 @@ seg.addEventListener('mouseover', e => {
 seg.addEventListener('mouseleave', ()=> thumb.style.setProperty('--sx','1'));
 
 $('#in').addEventListener('input', render);
-['case','strat','max','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
+['case','strat','ascii'].forEach(id => $('#'+id).addEventListener('change', render));
+
+// max-length slider snaps to clean stops (0 = no limit)
+const MAX_STOPS = [0, 6, 12, 18, 24, 36, 48];
+const maxRange = $('#maxRange'), maxHidden = $('#max'), maxVal = $('#maxVal');
+function syncMax(){
+  const v = MAX_STOPS[+maxRange.value];
+  maxHidden.value = v;
+  maxVal.textContent = v === 0 ? 'off' : v;
+  render();
+}
+maxRange.addEventListener('input', syncMax);
+
+// turn native <select> into a fully styled dropdown
+function enhanceSelect(sel){
+  const wrap = document.createElement('div'); wrap.className = 'cselect';
+  sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel);
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'cselect-btn';
+  const label = document.createElement('span'); label.className = 'cselect-label';
+  btn.appendChild(label);
+  btn.insertAdjacentHTML('beforeend',"<svg class='chev' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='currentColor' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  const list = document.createElement('div'); list.className = 'cselect-list';
+  [...sel.options].forEach(o => {
+    const opt = document.createElement('div'); opt.className = 'cselect-opt'; opt.textContent = o.textContent; opt.dataset.v = o.value;
+    if(o.value === sel.value){ opt.classList.add('sel'); label.textContent = o.textContent; }
+    opt.onclick = () => {
+      sel.value = o.value; label.textContent = o.textContent;
+      list.querySelectorAll('.cselect-opt').forEach(x => x.classList.toggle('sel', x === opt));
+      wrap.classList.remove('open');
+      sel.dispatchEvent(new Event('change'));
+    };
+    list.appendChild(opt);
+  });
+  btn.onclick = e => { e.stopPropagation();
+    document.querySelectorAll('.cselect.open').forEach(w => { if(w !== wrap) w.classList.remove('open'); });
+    wrap.classList.toggle('open');
+  };
+  wrap.appendChild(btn); wrap.appendChild(list);
+}
+document.addEventListener('click', () => document.querySelectorAll('.cselect.open').forEach(w => w.classList.remove('open')));
+document.addEventListener('keydown', e => { if(e.key === 'Escape') document.querySelectorAll('.cselect.open').forEach(w => w.classList.remove('open')); });
 $('#copyAll').onclick = () => {
   const lines = $('#in').value.split('\n').map(l=>l.trim()).filter(Boolean);
   navigator.clipboard.writeText(lines.map(l=>NameShort.shorten(l, opts)).join('\n'));
@@ -73,14 +113,20 @@ $('#copyAll').onclick = () => {
 const EXAMPLES = ["Perfume Campaign Final Delivery 2026","Client Brand Identity Working Files","Untitled Project Copy Final v2","Summer Photoshoot Raw Exports","Website Redesign Master Assets"];
 $('#sample').onclick = () => { $('#in').value = EXAMPLES[Math.floor(Math.random()*EXAMPLES.length)]; render(); };
 
-// restore saved settings, then place the pill + render
+// restore saved settings, then build dropdowns + place the pill + render
 chrome.storage.local.get('opts', ({opts:saved}) => {
   if(saved){
     opts = saved;
     $('#case').value = saved.case; $('#strat').value = saved.strat;
-    $('#max').value = saved.max; $('#ascii').checked = saved.ascii;
+    $('#ascii').checked = saved.ascii;
+    const v = parseInt(saved.max) || 0;
+    maxHidden.value = v;
+    const idx = MAX_STOPS.indexOf(v);
+    maxRange.value = idx >= 0 ? idx : 4;
+    maxVal.textContent = v === 0 ? 'off' : v;
     seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.d===saved.date));
   }
+  enhanceSelect($('#case')); enhanceSelect($('#strat')); // after values restored so labels match
   $('#in').value = EXAMPLES[Math.floor(Math.random()*EXAMPLES.length)];
   moveThumb(seg.querySelector('.on') || seg.querySelector('button'), false);
   render();
