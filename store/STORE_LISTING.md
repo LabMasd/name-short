@@ -75,7 +75,7 @@ Convert long names into short, filesystem-safe slugs (folder/file names), with a
 |---|---|
 | `storage` | Saves the user's chosen options (case, strategy, max length, date, ascii) locally so the popup remembers them between sessions. |
 | `contextMenus` | Adds the right-click "Shorten … → copy slug" menu item. |
-| `activeTab` + `scripting` | Only when the user clicks the right-click menu, a tiny script writes the resulting slug to the clipboard on the current tab. No page content is read, stored, or transmitted. |
+| `offscreen` | Uses a brief offscreen document solely to write the resulting slug to the clipboard. No page content is read, stored, or transmitted. |
 | `notifications` | Shows a brief "Copied: …" confirmation after the right-click action. |
 
 **Data usage disclosures:** check **"I do not sell or transfer user data to third parties"**, and declare **no data collected** (none of the categories apply — all processing is local).
@@ -105,4 +105,4 @@ Convert long names into short, filesystem-safe slugs (folder/file names), with a
 - [ ] Data disclosures: no data collected, no sale/transfer
 - [ ] Submit for review (first review usually a few business days)
 
-> Note on review friction: `scripting` + `activeTab` get extra scrutiny. They are used **only** for the right-click clipboard copy. If a reviewer pushes back, the right-click feature can be reimplemented with the `offscreen` API to drop both permissions — ask and I'll refactor.
+> The right-click clipboard copy uses the `offscreen` API (no `scripting`/`activeTab`/host permissions), which keeps the permission set minimal and review-friendly.
